@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas</title>
+</head>
+<style>
+    canvas {
+        border: 1px solid;
+        background-color: white;
+    }
+
+    body {
+        cursor: url("pencil.cur"),default;
+        background-color: #031A23;
+    }
+
+    #square {
+        background-image: url("square.png");
+        width: 50px;
+        height: 50px;
+    }
+
+    #round {
+        background-image: url("circle.png");
+        width: 50px;
+        height: 50px;
+    }
+
+    #erase {
+        background-image: url("eraser.png");
+        width: 50px;
+        height: 50px;
+    }
+
+    #erase:hover,  #round:hover, #square:hover{
+        color: #F5F5F5;
+        background-color: #137A86;
+        
+    }
+
+    input {
+        border-radius: 50%;
+        background-size: cover;
+        width: 50px;
+        height: 50px;
+        background-color: #F5F5F5;
+    }
+
+    input:hover {
+        color: #F5F5F5;
+        background-color: #137A86;
+        
+
+    }
+
+    #yellow {
+        background-image: url(yellow.png);
+        background-color: white;
+    }
+
+    #red {
+        background-image: url("red.png");
+    }
+
+    #blue {
+        background-image: url("blue.png");
+    }
+
+
+
+    p{
+        color: #F5F5F5;
+    }
+
+    div{
+        position: relative;
+        bottom:0;
+    }
+
+    #linewi{
+        width: 100px;
+    }
+
+    #dl {
+        background-image: url("noun_Download_2413548.png");
+
+    }
+
+    #upload{
+        height:25px;
+        width : 100px;
+    }
+
+    #redo{
+        background-image: url("redo.png");
+    }
+
+    #undo{
+        background-image: url("undo.png");
+    }
+
+    #choosecolor{
+        width: 40px;
+        height: 40px;
+
+    }
+
+
+    @media (min-width: 1500px) and (min-height: 500px){
+        div {
+            position:fixed;
+            top:15%;
+            left: 55%;
+
+
+        }
+
+    }
+
+
+</style>
+
+
+<canvas width="800" height="600" id="myCanvas"></canvas>
+<div>
+<table cellpadding="10">
+    <tr>
+        <td>
+            <p>Line size</p>
+        </td>
+        <td>
+            <p>Color</p>
+        </td>
+        <td>
+            <p>Step</p>
+        </td>
+    </tr>
+    <tr>
+        <td><input type="button" class="width" id="linewi1" value="1">
+            <input type="button" class="width" id="linewi3" value="3">
+            <input type="button" class="width" id="linewi5" value="5"><br>
+            <input type="range" id="linewi" min="1" max="10" step="1" value="2">
+        </td>
+        <td>
+            <input type="button" class="color" id="red" value="red">
+            <input type="button" class="color" id="blue" value="blue">
+            <input type="button" class="color" id="yellow" value="yellow"><br>
+            <input type="color" id="choosecolor" value="#eea2a4">
+        </td>
+        <td><input type="button" class="history" id="undo" value="">
+            <input type="button" class="history" id="redo" value=""><br>
+            <input type="button" class="history" id="clear" value="clear"></td>
+    </tr>
+    <tr>
+        <td>
+            <p>Shape</p>
+        </td>
+        <td>
+            <p>Line style</p>
+        </td>
+        <td>
+            <p>Eraser</p>
+        </td>
+    </tr>
+    <tr>
+        <td><input type="button" class="shape" id="line" value="line">
+            <input type="button" class="shape" id="rect" value="rect">
+            <input type="button" class="shape" id="cir" value="circle">
+            <input type="button" class="shape" id="pencil" value="pencil">
+        </td>
+        <td><input type="button" class="linecap" id="square">
+            <input type="button" class="linecap" id="round">
+        </td>
+        <td><input type="button" id="erase">
+        </td>
+    </tr>
+    <tr colspan="3">
+        <td>
+            <p>File</p>
+        </td>
+
+    </tr>
+    <tr colspan="3">
+        <td>
+            <a href="" download onclick="this.href=canvas.toDataURL();">
+                <input type="button" id="dl">
+            </a>
+            <input type="file" onchange="previewFile()" accept="image/png, image/jpeg" id="upload" style="border-radius: 0;">
+        </td>
+
+    </tr>
+</table>
+
+</div>
+
+<script>
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+    var drawMode = false;
+    var mx, my;
+    var oriX, oriY, oldImg;
+    var linewidth = 1;
+    var lineCap = "butt";
+    var lineJoin = "miter";
+    var color = "#000";
+    var sRecord = Array();
+    var step = -1;
+    var drawShape = "normal";
+
+
+    canvas.onmousedown = function (ev) {
+
+        mx = event.clientX + window.pageXOffset;
+        my = event.clientY + window.pageYOffset;
+        drawMode = true;
+        if (step == -1) {
+            cPush();
+
+        }
+        if (drawShape == "normal") {
+            drawing();
+        } else {
+            oldImg = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+            oriX = mx;
+            oriY = my;
+        }
+
+
+    }
+
+    canvas.onmousemove = function (ev) {
+        if (drawMode == true) {
+            mx = event.clientX + window.pageXOffset;
+            my = event.clientY + window.pageYOffset;
+            if (drawShape == "normal") {
+
+                ctx.lineTo(mx, my);
+                ctx.stroke();
+                console.log("mousemove" + mx + my);
+            } else if (drawShape == "line") {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.putImageData(oldImg, 0, 0);
+
+                drawALine(oriX, oriY, mx, my);
+                console.log("linelineline");
+
+            } else if (drawShape == "cir") {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.putImageData(oldImg, 0, 0);
+                drawCircle(oriX, oriY, dist(oriX, oriY, mx, my));
+            } else {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.putImageData(oldImg, 0, 0);
+                drawARect(oriX, oriY, mx, my);
+                console.log("rectrect");
+            }
+        }
+    };
+
+    canvas.onmouseup = function () {
+        mx = event.clientX + window.pageXOffset;
+        my = event.clientY + window.pageYOffset;
+        if (drawShape == "line") {
+            drawALine(oriX, oriY, mx, my);
+
+        } else if (drawShape == "rect") {
+            drawARect(oriX, oriY, mx, my);
+        } else {
+            drawCircle(oriX, oriY, dist(oriX, oriY, mx, my));
+        }
+
+        drawMode = false;
+        cPush();
+    }
+
+    document.getElementById("linewi1").onclick = function changeLineWidth() {
+        getColor();
+        drawShape = "normal";
+        linewidth = 1;
+
+    };
+
+    document.getElementById("linewi3").onclick = function changeLineWidth() {
+        getColor();
+        drawShape = "normal";
+        linewidth = 3;
+
+    };
+    document.getElementById("linewi5").onclick = function changeLineWidth() {
+        getColor();
+        drawShape = "normal";
+        linewidth = 5;
+
+    };
+    document.getElementById("red").onclick = function () {
+        document.body.style.cursor = 'url("redpen.cur"),default';
+        color = "#EB0D00";
+
+    };
+
+    document.getElementById("blue").onclick = function () {
+
+        document.body.style.cursor = 'url("blue.cur"),default';
+        color = "#2F3BEB";
+
+    };
+
+    document.getElementById("yellow").onclick = function () {
+
+        document.body.style.cursor = 'url("yellow.cur"),default';
+        color = "#fed71a";
+
+    };
+
+    document.getElementById("erase").onclick = function () {
+        color = "#FFFFFF";
+        document.body.style.cursor = 'url("erase.cur"),default';
+
+    };
+
+    document.getElementById("choosecolor").addEventListener("input", function () {
+
+        color = document.getElementById("choosecolor").value;
+
+    }, false);
+
+    document.getElementById("linewi").addEventListener("input", function () {
+
+        linewidth = document.getElementById("linewi").value;
+
+    }, false);
+
+    document.getElementById("round").onclick = function () {
+        getColor();
+        drawShape = "normal";
+
+        lineCap = "round";
+        lineJoin = "round";
+
+    };
+
+    document.getElementById("square").onclick = function () {
+        getColor();
+        drawShape = "normal";
+
+        lineCap = "square";
+        lineJoin = "bevel";
+
+    };
+
+    /*document.getElementById("dl").onclick = function () {
+        this.href=canvas.toDataURL("image/png",1);
+        //document.getElementsByTagName("a").href = canvas.toDataURL("image/png",1);
+
+
+    };*/
+
+
+    function cPush() {
+        step++;
+        if (step < sRecord.length) {
+            sRecord.length = step;
+        }
+        sRecord.push(document.getElementById('myCanvas').toDataURL());
+    }
+
+
+    document.getElementById("undo").onclick = function () {
+        console.log("undo");
+        if (step > 0) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            step--;
+            var canvasPic = new Image();
+            canvasPic.src = sRecord[step];
+            canvasPic.onload = function () {
+                ctx.drawImage(canvasPic, 0, 0);
+            };
+
+
+
+        }
+    };
+
+    document.getElementById("redo").onclick = function () {
+        console.log("redo");
+        if (step < sRecord.length - 1) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            step++;
+            var canvasPic = new Image();
+            canvasPic.src = sRecord[step];
+            canvasPic.onload = function () {
+                ctx.drawImage(canvasPic, 0, 0);
+            };
+
+        }
+    }
+
+    document.getElementById("clear").onclick = function clearArea() {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
+
+    function previewFile() {
+
+        var img = new Image();
+        var file = document.querySelector('input[type=file]').files[0];
+        var reader = new FileReader();
+
+        reader.addEventListener("load", function () {
+            img.src = reader.result;
+        }, false);
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+
+        img.onload = function () {
+            ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height);
+        }
+    };
+
+    document.getElementById("line").onclick = function () {
+        getColor();
+        drawShape = "line";
+
+    }
+
+    document.getElementById("rect").onclick = function () {
+        getColor();
+        drawShape = "rect";
+
+    }
+
+
+    document.getElementById("cir").onclick = function () {
+        getColor();
+        drawShape = "cir";
+
+    }
+
+    document.getElementById("pencil").onclick = function () {
+        getColor();
+        drawShape = "normal";
+
+
+    }
+
+    function drawing() {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = linewidth;
+        ctx.lineCap = lineCap;
+        ctx.lineJoin = lineJoin;
+
+        ctx.moveTo(mx, my);
+
+        console.log("mousedown" + mx + my);
+
+    }
+
+
+    function drawALine(beginX, beginY, endX, endY) {
+        if (drawShape == "line") {
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = linewidth;
+            ctx.moveTo(beginX, beginY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+        }
+
+    }
+
+    function drawARect(beginX, beginY, endX, endY) {
+        if (drawShape == "rect") {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.moveTo(beginX, beginY);
+            ctx.lineTo(endX, beginY);
+            ctx.lineTo(endX, endY);
+            ctx.lineTo(beginX, endY);
+            ctx.fill();
+        }
+    }
+
+    function drawCircle(x, y, r) {
+        if (drawShape == "cir") {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.arc(x, y, r, 0, Math.PI * 2, true);
+            ctx.fill();
+        }
+    }
+
+    function dist(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+    }
+
+    function getColor(){
+        if(color == "#EB0D00"){
+            document.body.style.cursor = 'url("redpen.cur"),default';
+        }else if(color == "#2F3BEB"){
+            document.body.style.cursor = 'url("blue.cur"),default';
+        }else if(color == "#fed71a"){
+            document.body.style.cursor = 'url("yellow.cur"),default';
+        }else if(color == '#FFFFFF'){
+            document.body.style.cursor = 'url("erase.cur"),default';
+        }
+        else{
+            document.body.style.cursor = 'url("pencil.cur"),default';
+        }
+    }
+
+</script>
+
+</body></html>
